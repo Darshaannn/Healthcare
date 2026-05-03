@@ -10,3 +10,5 @@ passlib[bcrypt]
 pandas
 thefuzz
 python-Levenshtein
+pytest
+httpx
