@@ -7,6 +7,7 @@ import shutil
 import os
 import json
 import datetime
+import requests
 
 # Import our custom engines
 from parser_sdk import HospitalDataParser
@@ -21,6 +22,8 @@ app = FastAPI(title="UHR Platform API")
 
 # Mount Static Files for the Frontend UI
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+HAPI_FHIR_URL = "http://localhost:8080/fhir"
 
 @app.get("/")
 async def read_index():
@@ -113,13 +116,30 @@ async def ingest_data(
             )
             db.add(new_mapping)
             
-            # 4. Terminology Transformation
+            # 4. Terminology Transformation & FHIR Bundle Generation
             fhir_bundle = transformer.to_fhir_bundle([record])
+            
+            # 5. Push to the REAL HAPI FHIR Server running in Docker
+            fhir_status = "Generated but not pushed"
+            try:
+                # Use application/fhir+json as required by HL7 FHIR servers
+                response = requests.post(
+                    HAPI_FHIR_URL, 
+                    json=fhir_bundle, 
+                    headers={"Content-Type": "application/fhir+json"}
+                )
+                if response.status_code in [200, 201]:
+                    fhir_status = "Successfully committed to HAPI FHIR Server"
+                else:
+                    fhir_status = f"FHIR Server Error: {response.status_code} - {response.text}"
+            except Exception as e:
+                fhir_status = f"FHIR Server offline. Is docker-compose running? Error: {str(e)}"
             
             results.append({
                 "local_id": record["patient"]["patient_id"],
                 "global_id": best_global_id,
-                "fhir_summary": f"{len(fhir_bundle['entry'])} resources generated"
+                "fhir_summary": f"{len(fhir_bundle['entry'])} resources generated",
+                "fhir_server_status": fhir_status
             })
             
         db.commit()

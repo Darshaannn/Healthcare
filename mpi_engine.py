@@ -1,5 +1,6 @@
 import json
 import uuid
+from thefuzz import fuzz
 
 class MasterPatientIndex:
     """
@@ -39,15 +40,13 @@ class MasterPatientIndex:
             if new_patient["dob"] == existing_patient["dob"]:
                 score += weights["dob"]
                 
-        # 4. Name Match (Fuzzy in real life, exact/partial for MVP)
+        # 4. Name Match (Fuzzy logic using token_sort_ratio)
+        # This handles reordering, e.g., "Rahul Sharma" vs "Sharma, Rahul"
         new_full_name = f"{new_patient.get('first_name', '')} {new_patient.get('last_name', '')}".lower()
         existing_full_name = f"{existing_patient.get('first_name', '')} {existing_patient.get('last_name', '')}".lower()
         
-        if new_full_name == existing_full_name:
-            score += weights["name"]
-        elif new_patient.get("first_name", "").lower() == existing_patient.get("first_name", "").lower():
-            # Partial name match
-            score += (weights["name"] / 2)
+        name_match_percent = fuzz.token_sort_ratio(new_full_name, existing_full_name)
+        score += weights["name"] * (name_match_percent / 100.0)
             
         return score
 
