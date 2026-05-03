@@ -1,4 +1,5 @@
-from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
+from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import shutil
 import os
@@ -10,7 +11,8 @@ from parser_sdk import HospitalDataParser
 from terminology_engine import TerminologyEngine, FhirTransformer
 from mpi_engine import MasterPatientIndex
 from consent_engine import ConsentEngine
-from database import SessionLocal, engine, init_db, get_db, PatientMapping, ConsentArtefact
+from database import SessionLocal, engine, init_db, get_db, PatientMapping, ConsentArtefact, User
+from auth import create_access_token, get_password_hash, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
 
 app = FastAPI(title="UHR Platform API")
 
@@ -29,10 +31,38 @@ transformer = FhirTransformer(terminology)
 mpi = MasterPatientIndex()
 consent_manager = ConsentEngine()
 
-# --- ENDPOINTS ---
+# --- AUTH ENDPOINTS ---
+
+@app.post("/register")
+def register_doctor(username: str, password: str, full_name: str, db: Session = Depends(get_db)):
+    """Registers a new doctor in the system."""
+    hashed_pw = get_password_hash(password)
+    new_user = User(username=username, hashed_password=hashed_pw, full_name=full_name)
+    db.add(new_user)
+    db.commit()
+    return {"message": "Doctor registered successfully"}
+
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """Authenticates a user and returns a JWT access token."""
+    user = db.query(User).filter(User.username == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+# --- DATA ENDPOINTS ---
 
 @app.post("/ingest")
-async def ingest_data(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def ingest_data(
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     Ingests a hospital CSV, runs normalization, terminology mapping, 
     MPI linking, and prepares FHIR payloads.
@@ -89,15 +119,25 @@ async def ingest_data(file: UploadFile = File(...), db: Session = Depends(get_db
             os.remove(temp_path)
 
 @app.get("/patient/{global_id}/records")
-async def get_patient_records(global_id: str, doctor_id: str, consent_token: str, db: Session = Depends(get_db)):
+async def get_patient_records(
+    global_id: str, 
+    consent_token: str, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     Secure access to patient records via API Gateway logic.
+    Only allows access if the current logged-in doctor matches the consent doctor_id.
     """
     # 1. Check Consent in DB
     consent = db.query(ConsentArtefact).filter(ConsentArtefact.id == consent_token).first()
     
     if not consent:
         raise HTTPException(status_code=403, detail="Consent not found or unauthorized.")
+    
+    # 2. Security Check: Does the logged-in doctor match the consent?
+    if consent.doctor_id != str(current_user.id) and consent.doctor_id != current_user.username:
+        raise HTTPException(status_code=403, detail="Unauthorized: This consent was granted to a different doctor.")
     
     # 2. Check Expiry
     if consent.expires_at < datetime.datetime.utcnow():
