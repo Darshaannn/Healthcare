@@ -26,6 +26,11 @@ This project implements a multi-layered health data interoperability stack:
 - **Trust Layer**: Enforces patient-owned data access.
 - **API Gateway**: Intercepts FHIR requests and validates time-limited, purpose-specific consent tokens before releasing data.
 
+### 6. FastAPI Backend System (Phase 6)
+- **Integration**: `main.py` ties all engines into a cohesive HTTP API.
+- **Persistence**: `database.py` adds PostgreSQL persistence for MPI mappings and Consents.
+- **Endpoints**: `/ingest` (CSV to FHIR), `/consent/grant`, and `/patient/{id}/records`.
+
 ## 🚀 Getting Started
 
 1. **Start Infrastructure**:
@@ -33,23 +38,21 @@ This project implements a multi-layered health data interoperability stack:
    docker-compose up -d
    ```
 
-2. **Generate Sample Data**:
+2. **Install Dependencies**:
    ```bash
-   python generate_simulated_data.py
+   pip install -r requirements.txt
    ```
 
-3. **Run the Adapter Pipeline**:
+3. **Run the Backend System**:
    ```bash
-   python parser_sdk.py
-   python terminology_engine.py
+   python main.py
    ```
 
-4. **Test Security**:
-   ```bash
-   python api_gateway.py
-   ```
+4. **API Interaction**:
+   - Visit `http://localhost:8000/docs` for the interactive Swagger documentation.
+   - Upload `simulated_hospital_data.csv` to `/ingest`.
 
 ## 🛠️ Next Steps
-- [ ] Implement a React-based Patient Consent Dashboard.
-- [ ] Build a Clinical Decision Support (CDS) engine for Drug-Drug Interaction alerts.
-- [ ] Integrate with official ABDM Sandbox APIs.
+- [ ] Implement **Real JWT Authentication** (OAuth2 with password flow).
+- [ ] Build a **Clinical Decision Support (CDS)** engine for Drug-Drug Interaction alerts.
+- [ ] Implement the **React-based Patient Consent Dashboard**.
