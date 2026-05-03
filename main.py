@@ -1,4 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, status
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 import shutil
@@ -16,6 +18,13 @@ from database import SessionLocal, engine, init_db, get_db, PatientMapping, Cons
 from auth import create_access_token, get_password_hash, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
 
 app = FastAPI(title="UHR Platform API")
+
+# Mount Static Files for the Frontend UI
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+async def read_index():
+    return FileResponse('static/index.html')
 
 # Initialize DB on startup
 @app.on_event("startup")

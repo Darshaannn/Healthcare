@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UHR Dashboard | Unified Health Records</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i data-lucide="shield-plus"></i>
+                <span>UHR Platform</span>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-view="dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</li>
+                <li data-view="patients"><i data-lucide="users"></i> Patients</li>
+                <li data-view="ingest"><i data-lucide="upload-cloud"></i> Ingest Data</li>
+                <li data-view="consent"><i data-lucide="key"></i> Consents</li>
+            </ul>
+            <div class="user-profile">
+                <div class="avatar">DS</div>
+                <div class="info">
+                    <p class="name">Dr. Smith</p>
+                    <p class="role">Chief Cardiologist</p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <header>
+                <div class="search-bar">
+                    <i data-lucide="search"></i>
+                    <input type="text" placeholder="Search by ABHA ID or Name...">
+                </div>
+                <div class="actions">
+                    <button class="btn-icon"><i data-lucide="bell"></i></button>
+                    <button class="btn-primary">New Patient</button>
+                </div>
+            </header>
+
+            <div id="view-container">
+                <!-- Dashboard Overview -->
+                <section id="dashboard-view" class="view active">
+                    <h1 class="fade-in">Good Morning, Dr. Smith</h1>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i data-lucide="activity"></i>
+                            <div>
+                                <h3>1,240</h3>
+                                <p>Unified Records</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i data-lucide="link"></i>
+                            <div>
+                                <h3>89%</h3>
+                                <p>MPI Match Rate</p>
+                            </div>
+                        </div>
+                        <div class="stat-card alert">
+                            <i data-lucide="alert-triangle"></i>
+                            <div>
+                                <h3>12</h3>
+                                <p>Drug Conflicts</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recent-patients">
+                        <h2>Recent Interoperability Activity</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Patient</th>
+                                        <th>Source</th>
+                                        <th>Status</th>
+                                        <th>Standard</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Rahul Sharma</td>
+                                        <td>Apollo Delhi</td>
+                                        <td><span class="badge success">Unified</span></td>
+                                        <td><span class="badge info">FHIR R4</span></td>
+                                        <td><button class="btn-text">View History</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Priya Patel</td>
+                                        <td>Fortis Mumbai</td>
+                                        <td><span class="badge success">Unified</span></td>
+                                        <td><span class="badge info">FHIR R4</span></td>
+                                        <td><button class="btn-text">View History</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Other views will be injected here by app.js -->
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
