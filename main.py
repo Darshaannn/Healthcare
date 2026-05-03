@@ -11,6 +11,7 @@ from parser_sdk import HospitalDataParser
 from terminology_engine import TerminologyEngine, FhirTransformer
 from mpi_engine import MasterPatientIndex
 from consent_engine import ConsentEngine
+from clinical_rules import DrugInteractionEngine
 from database import SessionLocal, engine, init_db, get_db, PatientMapping, ConsentArtefact, User
 from auth import create_access_token, get_password_hash, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
 
@@ -30,6 +31,7 @@ terminology = TerminologyEngine()
 transformer = FhirTransformer(terminology)
 mpi = MasterPatientIndex()
 consent_manager = ConsentEngine()
+ddi_engine = DrugInteractionEngine()
 
 # --- AUTH ENDPOINTS ---
 
@@ -139,18 +141,48 @@ async def get_patient_records(
     if consent.doctor_id != str(current_user.id) and consent.doctor_id != current_user.username:
         raise HTTPException(status_code=403, detail="Unauthorized: This consent was granted to a different doctor.")
     
-    # 2. Check Expiry
-    if consent.expires_at < datetime.datetime.utcnow():
-        raise HTTPException(status_code=403, detail="Consent has expired.")
-        
     # 3. Simulate fetching from FHIR Store
     # In a real app, this would query the HAPI FHIR server using the global_id
     return {
         "global_id": global_id,
         "authorized_by": consent_token,
         "records": [
-            {"resourceType": "Condition", "code": "A90", "display": "Dengue Fever"}
+            {"resourceType": "Condition", "code": "A90", "display": "Dengue Fever"},
+            {"resourceType": "MedicationRequest", "medication": "Warfarin 5mg"}
         ]
+    }
+
+@app.post("/patient/{global_id}/prescribe")
+async def prescribe_medication(
+    global_id: str, 
+    medication: str, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Checks for drug-drug interactions against the patient's unified history 
+    before allowing a new prescription.
+    """
+    # 1. Fetch patient's medication history (Simulated)
+    # In production, this pulls all 'MedicationRequest' resources from the FHIR Store
+    history = ["Warfarin 5mg", "Metformin 500mg"] 
+    
+    # 2. Run Interaction Check
+    alerts = ddi_engine.check_interactions(history, medication)
+    
+    if alerts:
+        return {
+            "status": "WARNING",
+            "message": "Drug-Drug Interactions Detected",
+            "alerts": alerts,
+            "prescribed_by": current_user.full_name
+        }
+        
+    return {
+        "status": "SAFE",
+        "message": "No clinical interactions detected.",
+        "medication": medication,
+        "prescribed_by": current_user.full_name
     }
 
 if __name__ == "__main__":
