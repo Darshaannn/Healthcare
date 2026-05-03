@@ -1,0 +1,11 @@
+PatientID,Hospital_Name,FirstName,LastName,DOB,Gender,Phone,Aadhaar,VisitDate,DiagCode,DiagDesc,Medication
+APO-12345,Apollo Delhi,Rahul,Sharma,12-03-1985,M,+919876543210,1234 5678 9012,2023-10-15T10:30:00,DNG-001,Dengue Fever,Paracetamol 500mg
+FOR-67890,Fortis Mumbai,Priya,Patel,25-07-1990,F,+919123456789,9876 5432 1098,2023-10-14T14:45:00,A90,Dengue fever [classical dengue],None
+MAX-54321,Max Healthcare,Amit,Singh,05-11-1978,M,+919988776655,4567 8901 2345,2023-10-16T09:15:00,dengue,dengue,Paracetamol 500mg
+AII-98765,AIIMS,Neha,Gupta,22-01-1995,F,+919876123450,3456 7890 1234,2023-10-10T11:00:00,TYP-101,Typhoid,Amoxicillin 250mg
+APO-11223,Apollo Delhi,Rohan,Kumar,18-09-1982,M,+919112233445,5678 9012 3456,2023-10-12T16:20:00,A01.0,Typhoid fever,Amoxicillin 250mg
+FOR-44556,Fortis Mumbai,Sneha,Desai,30-04-1988,F,+919998887776,6789 0123 4567,2023-10-11T13:10:00,hypertension,hypertension,Amlodipine 5mg
+MAX-77889,Max Healthcare,Vikram,Joshi,14-06-1975,M,+919887766554,7890 1234 5678,2023-10-09T10:05:00,I10,Essential (primary) hypertension,Amlodipine 5mg
+AII-99001,AIIMS,Anjali,Verma,08-12-1980,F,+919776655443,8901 2345 6789,2023-10-08T09:30:00,DM2,Type 2 Diabetes Mellitus,Metformin 500mg
+APO-33445,Apollo Delhi,Suresh,Reddy,19-02-1970,M,+919665544332,9012 3456 7890,2023-10-13T15:50:00,E11.9,Type 2 diabetes mellitus without complications,Metformin 500mg
+FOR-55667,Fortis Mumbai,Kavita,Iyer,27-08-1992,F,+919554433221,0123 4567 8901,2023-10-17T11:40:00,DNG-001,Dengue Fever,Paracetamol 500mg

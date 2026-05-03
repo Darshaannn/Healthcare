@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  hapi-fhir-postgres:
+    image: postgres:15-alpine
+    container_name: hapi-fhir-postgres
+    environment:
+      - POSTGRES_DB=hapi_fhir
+      - POSTGRES_USER=hapi_user
+      - POSTGRES_PASSWORD=hapi_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - hapi-fhir-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hapi_user -d hapi_fhir"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  hapi-fhir-server:
+    image: hapiproject/hapi:latest
+    container_name: hapi-fhir-server
+    ports:
+      - "8080:8080"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://hapi-fhir-postgres:5432/hapi_fhir
+      - spring.datasource.username=hapi_user
+      - spring.datasource.password=hapi_password
+      - spring.datasource.driverClassName=org.postgresql.Driver
+      - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+      - hapi.fhir.tester.home.server_address=http://localhost:8080/fhir
+      - hapi.fhir.openapi_enabled=true
+    depends_on:
+      hapi-fhir-postgres:
+        condition: service_healthy
+
+volumes:
+  hapi-fhir-pgdata:

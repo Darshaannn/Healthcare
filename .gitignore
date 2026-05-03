@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Docker
+.docker/
+
+# IDEs
+.vscode/
+.idea/
+
+# Data (Optional - keeping CSV for now as it's small and part of the demo)
+# simulated_hospital_data.csv
+# internal_normalized_model.json
+# fhir_r4_payload.json
