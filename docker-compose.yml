@@ -35,5 +35,19 @@ services:
       hapi-fhir-postgres:
         condition: service_healthy
 
+  python-backend:
+    build: .
+    container_name: python-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - HAPI_FHIR_URL=http://hapi-fhir-server:8080/fhir
+      - DATABASE_URL=postgresql://hapi_user:hapi_password@hapi-fhir-postgres:5432/hapi_fhir
+    depends_on:
+      hapi-fhir-postgres:
+        condition: service_healthy
+      hapi-fhir-server:
+        condition: service_started
+
 volumes:
   hapi-fhir-pgdata:

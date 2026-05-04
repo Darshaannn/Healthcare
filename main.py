@@ -17,13 +17,14 @@ from consent_engine import ConsentEngine
 from clinical_rules import DrugInteractionEngine
 from database import SessionLocal, engine, init_db, get_db, PatientMapping, ConsentArtefact, User
 from auth import create_access_token, get_password_hash, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
+from api_gateway import SecureApiGateway
 
 app = FastAPI(title="UHR Platform API")
 
 # Mount Static Files for the Frontend UI
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-HAPI_FHIR_URL = "http://localhost:8080/fhir"
+HAPI_FHIR_URL = os.getenv("HAPI_FHIR_URL", "http://localhost:8080/fhir")
 
 @app.get("/")
 async def read_index():
@@ -44,6 +45,7 @@ transformer = FhirTransformer(terminology)
 mpi = MasterPatientIndex()
 consent_manager = ConsentEngine()
 ddi_engine = DrugInteractionEngine()
+api_gateway = SecureApiGateway(consent_manager)
 
 # --- AUTH ENDPOINTS ---
 
@@ -148,6 +150,63 @@ async def ingest_data(
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
+
+@app.post("/consent/grant")
+async def grant_consent(
+    patient_abha_id: str,
+    doctor_id: str,
+    purpose: str = "Care Management",
+    valid_hours: int = 24,
+    data_types: str = "Condition,MedicationRequest",
+    db: Session = Depends(get_db)
+):
+    """
+    Wires the consent engine to generate a consent artefact.
+    """
+    types_list = [t.strip() for t in data_types.split(",")]
+    artefact = consent_manager.generate_consent_artefact(
+        patient_abha_id=patient_abha_id,
+        doctor_id=doctor_id,
+        purpose=purpose,
+        valid_hours=valid_hours,
+        data_types=types_list
+    )
+    
+    new_consent = ConsentArtefact(
+        id=artefact["consent_id"],
+        patient_id=artefact["patient_abha_id"],
+        doctor_id=artefact["granted_to_doctor_id"],
+        data_types=artefact["allowed_data_types"],
+        expires_at=datetime.datetime.strptime(artefact["expires_at"], "%Y-%m-%dT%H:%M:%S"),
+        status=artefact["status"]
+    )
+    db.add(new_consent)
+    db.commit()
+    
+    return artefact
+
+@app.get("/patient/{abha_id}")
+async def get_patient_data(
+    abha_id: str,
+    resource_type: str,
+    consent_token: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Wires the API gateway to securely fetch patient data.
+    """
+    consent = db.query(ConsentArtefact).filter(ConsentArtefact.id == consent_token).first()
+    if not consent:
+        raise HTTPException(status_code=403, detail="Consent not found or unauthorized.")
+        
+    # Gateway proxy call
+    response = api_gateway.handle_request(consent.doctor_id, abha_id, resource_type, consent_token)
+    
+    if response.get("status") == 403:
+        raise HTTPException(status_code=403, detail=response.get("error"))
+        
+    return response
 
 @app.get("/patient/{global_id}/records")
 async def get_patient_records(

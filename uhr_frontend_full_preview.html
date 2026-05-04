@@ -1,0 +1,422 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.app{background:var(--color-background-tertiary);min-height:600px;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);overflow:hidden;font-size:13px}
+.sidebar{width:200px;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);padding:16px 0;display:flex;flex-direction:column;gap:2px}
+.logo{padding:0 16px 16px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:8px}
+.logo-text{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.logo-sub{font-size:11px;color:var(--color-text-tertiary)}
+.nav-item{padding:8px 16px;cursor:pointer;border-radius:0;font-size:13px;color:var(--color-text-secondary);display:flex;align-items:center;gap:8px;transition:background 0.1s}
+.nav-item:hover{background:var(--color-background-secondary)}
+.nav-item.active{background:#E6F1FB;color:#0C447C;font-weight:500}
+.nav-icon{width:16px;height:16px;flex-shrink:0;opacity:0.6}
+.nav-item.active .nav-icon{opacity:1}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:12px 20px;display:flex;align-items:center;gap:12px}
+.topbar-title{font-size:14px;font-weight:500;color:var(--color-text-primary);flex:1}
+.doctor-chip{display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--color-background-secondary);border-radius:20px;border:0.5px solid var(--color-border-tertiary)}
+.avatar{width:24px;height:24px;border-radius:50%;background:#E6F1FB;color:#0C447C;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.content{flex:1;padding:20px;overflow-y:auto}
+.screen{display:none}
+.screen.active{display:block}
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input{flex:1;padding:8px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px}
+.search-bar button{padding:8px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-size:13px;white-space:nowrap}
+.search-bar button:hover{background:var(--color-background-secondary)}
+.patient-list{display:flex;flex-direction:column;gap:8px}
+.patient-row{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.patient-row:hover{border-color:var(--color-border-secondary)}
+.patient-row.highlight{border-color:#185FA5}
+.p-name{font-weight:500;color:var(--color-text-primary);font-size:13px}
+.p-meta{font-size:12px;color:var(--color-text-secondary)}
+.p-badge{font-size:11px;padding:2px 8px;border-radius:20px;margin-left:auto;white-space:nowrap}
+.badge-green{background:#EAF3DE;color:#27500A}
+.badge-amber{background:#FAEEDA;color:#633806}
+.badge-red{background:#FCEBEB;color:#791F1F}
+.badge-blue{background:#E6F1FB;color:#0C447C}
+.badge-gray{background:#F1EFE8;color:#444441}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.05em;text-transform:uppercase;margin:16px 0 8px}
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.tl-dot-blue{background:#378ADD}
+.tl-dot-green{background:#639922}
+.tl-dot-amber{background:#BA7517}
+.tl-dot-red{background:#E24B4A}
+.tl-line{position:absolute;left:4px;top:13px;bottom:0;width:1px;background:var(--color-border-tertiary)}
+.tl-card{flex:1;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
+.tl-date{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.tl-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px}
+.tl-detail{font-size:12px;color:var(--color-text-secondary)}
+.alert-banner{background:#FCEBEB;border:0.5px solid #F09595;border-radius:var(--border-radius-md);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px}
+.alert-icon{width:16px;height:16px;background:#E24B4A;border-radius:50%;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center}
+.alert-icon span{color:#fff;font-size:10px;font-weight:500}
+.alert-text{font-size:12px;color:#791F1F}
+.alert-title{font-weight:500;margin-bottom:2px}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center}
+.stat-num{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.stat-lbl{font-size:11px;color:var(--color-text-tertiary)}
+.consent-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px;margin-bottom:8px}
+.consent-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.consent-title{font-weight:500;font-size:13px;color:var(--color-text-primary);flex:1}
+.consent-meta{font-size:12px;color:var(--color-text-secondary);margin-bottom:8px}
+.consent-actions{display:flex;gap:6px}
+.btn-sm{padding:5px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-size:12px}
+.btn-sm:hover{background:var(--color-background-secondary)}
+.btn-primary{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-primary:hover{background:#0C447C}
+.btn-danger{background:#FCEBEB;color:#791F1F;border-color:#F09595}
+.btn-danger:hover{background:#F7C1C1}
+.rx-form{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px;margin-bottom:12px}
+.rx-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.rx-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.rx-input{width:100%;padding:7px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px}
+.ddi-alert{background:#FAEEDA;border:0.5px solid #EF9F27;border-radius:var(--border-radius-md);padding:10px 14px;margin-top:10px;display:none}
+.ddi-title{font-size:12px;font-weight:500;color:#633806;margin-bottom:2px}
+.ddi-body{font-size:12px;color:#854F0B}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.profile-field{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.field-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:3px}
+.field-val{font-size:13px;color:var(--color-text-primary);font-weight:500}
+.tabs{display:flex;gap:0;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:16px}
+.tab{padding:8px 14px;cursor:pointer;font-size:13px;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:500}
+.pager{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
+.pager-info{font-size:12px;color:var(--color-text-secondary)}
+.pager-btns{display:flex;gap:4px}
+.pager-btn{padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;font-size:12px;color:var(--color-text-primary)}
+</style>
+
+<h2 class="sr-only">Interactive mockup of the UHR doctor portal frontend with 4 screens: patient search, patient timeline, prescription writer, and consent management</h2>
+
+<div class="app" style="display:flex;flex-direction:row">
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-text">UHR Platform</div>
+      <div class="logo-sub">Unified Health Records</div>
+    </div>
+    <div class="nav-item active" onclick="showScreen('search')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4"/><path d="M11 11l2.5 2.5"/></svg>
+      Patient search
+    </div>
+    <div class="nav-item" onclick="showScreen('timeline')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5"/></svg>
+      Health timeline
+    </div>
+    <div class="nav-item" onclick="showScreen('prescription')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><path d="M6 6h4M6 9h4M6 12h2"/></svg>
+      Prescriptions
+    </div>
+    <div class="nav-item" onclick="showScreen('consent')">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a3 3 0 00-3 3v1H4a1 1 0 00-1 1v6a1 1 0 001 1h8a1 1 0 001-1V7a1 1 0 00-1-1h-1V5a3 3 0 00-3-3z"/></svg>
+      Consent hub
+    </div>
+    <div style="margin-top:auto;padding:0 16px 0;border-top:0.5px solid var(--color-border-tertiary);padding-top:12px">
+      <div style="font-size:12px;color:var(--color-text-tertiary)">Logged in as</div>
+      <div style="font-size:13px;font-weight:500;color:var(--color-text-primary)">Dr. Sharma</div>
+      <div style="font-size:11px;color:var(--color-text-tertiary)">Apollo Mumbai · Cardiology</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Patient search</div>
+      <div class="doctor-chip">
+        <div class="avatar">DS</div>
+        <span style="font-size:12px;color:var(--color-text-secondary)">DOC-SHARMA-001</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="screen active" id="screen-search">
+        <div class="search-bar">
+          <input id="search-input" type="text" placeholder="Search by name, ABHA ID, Aadhaar, or phone..."/>
+          <button onclick="doSearch()">Search ↗</button>
+        </div>
+        <div class="section-label">Results</div>
+        <div class="patient-list" id="patient-list">
+          <div class="patient-row highlight" onclick="showScreen('timeline')">
+            <div class="avatar" style="width:32px;height:32px;font-size:12px">RS</div>
+            <div style="flex:1;min-width:0">
+              <div class="p-name">Rahul Sharma</div>
+              <div class="p-meta">ABHA-4829 · DOB 12/03/1985 · Apollo Delhi + Fortis Mumbai</div>
+            </div>
+            <span class="p-badge badge-red">DDI alert</span>
+          </div>
+          <div class="patient-row" onclick="showScreen('timeline')">
+            <div class="avatar" style="width:32px;height:32px;font-size:12px">PP</div>
+            <div style="flex:1;min-width:0">
+              <div class="p-name">Priya Patel</div>
+              <div class="p-meta">ABHA-7721 · DOB 25/07/1990 · Fortis Mumbai</div>
+            </div>
+            <span class="p-badge badge-green">Consent active</span>
+          </div>
+          <div class="patient-row" onclick="showScreen('timeline')">
+            <div class="avatar" style="width:32px;height:32px;font-size:12px">AK</div>
+            <div style="flex:1;min-width:0">
+              <div class="p-name">Amit Kumar</div>
+              <div class="p-meta">ABHA-3310 · DOB 08/11/1972 · Max Healthcare + AIIMS</div>
+            </div>
+            <span class="p-badge badge-amber">Consent pending</span>
+          </div>
+          <div class="patient-row" onclick="showScreen('timeline')">
+            <div class="avatar" style="width:32px;height:32px;font-size:12px">NV</div>
+            <div style="flex:1;min-width:0">
+              <div class="p-name">Neha Verma</div>
+              <div class="p-meta">ABHA-9102 · DOB 14/02/1998 · Apollo Delhi</div>
+            </div>
+            <span class="p-badge badge-gray">No consent</span>
+          </div>
+        </div>
+        <div class="pager">
+          <div class="pager-info">Showing 4 of 127 patients</div>
+          <div class="pager-btns">
+            <div class="pager-btn">Previous</div>
+            <div class="pager-btn" style="background:var(--color-background-secondary)">1</div>
+            <div class="pager-btn">2</div>
+            <div class="pager-btn">Next</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-timeline">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div class="avatar" style="width:40px;height:40px;font-size:14px">RS</div>
+          <div>
+            <div style="font-size:15px;font-weight:500;color:var(--color-text-primary)">Rahul Sharma</div>
+            <div style="font-size:12px;color:var(--color-text-secondary)">ABHA-4829 · Male · 40 yrs · Blood: O+</div>
+          </div>
+          <span class="p-badge badge-red" style="margin-left:auto">DDI alert</span>
+          <button class="btn-sm btn-primary" onclick="showScreen('prescription')">New prescription</button>
+        </div>
+
+        <div class="alert-banner">
+          <div class="alert-icon"><span>!</span></div>
+          <div class="alert-text">
+            <div class="alert-title">Drug interaction detected</div>
+            Warfarin (Apollo, Oct 2024) + Aspirin 75mg (Fortis, Nov 2024) — critical risk of bleeding. Review before prescribing.
+          </div>
+        </div>
+
+        <div class="profile-grid">
+          <div class="profile-field"><div class="field-label">Aadhaar</div><div class="field-val">XXXX XXXX 9012</div></div>
+          <div class="profile-field"><div class="field-label">Phone</div><div class="field-val">+91 98765 43210</div></div>
+          <div class="profile-field"><div class="field-label">Allergies</div><div class="field-val" style="color:#791F1F">Penicillin, Sulfa</div></div>
+          <div class="profile-field"><div class="field-label">Hospitals</div><div class="field-val">Apollo Delhi, Fortis Mumbai</div></div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active">All records</div>
+          <div class="tab">Conditions</div>
+          <div class="tab">Medications</div>
+          <div class="tab">Labs</div>
+        </div>
+
+        <div class="timeline">
+          <div class="tl-item">
+            <div style="position:relative"><div class="tl-dot tl-dot-red"></div><div class="tl-line"></div></div>
+            <div class="tl-card">
+              <div class="tl-date">Nov 2024 · Fortis Mumbai</div>
+              <div class="tl-title">Aspirin 75mg prescribed</div>
+              <div class="tl-detail">Dr. Mehta · for cardiac prophylaxis · <span style="color:#791F1F;font-weight:500">CONFLICTS with Warfarin</span></div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div style="position:relative"><div class="tl-dot tl-dot-amber"></div><div class="tl-line"></div></div>
+            <div class="tl-card">
+              <div class="tl-date">Oct 2024 · Apollo Delhi</div>
+              <div class="tl-title">Warfarin 5mg — ongoing</div>
+              <div class="tl-detail">Dr. Kapoor · atrial fibrillation management · INR monitoring active</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div style="position:relative"><div class="tl-dot tl-dot-blue"></div><div class="tl-line"></div></div>
+            <div class="tl-card">
+              <div class="tl-date">Aug 2024 · Apollo Delhi</div>
+              <div class="tl-title">Atrial fibrillation (I48.0)</div>
+              <div class="tl-detail">Diagnosed by ECG · ICD-10: I48.0 · SNOMED: 49436004</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div style="position:relative"><div class="tl-dot tl-dot-green"></div></div>
+            <div class="tl-card">
+              <div class="tl-date">Mar 2023 · Fortis Mumbai</div>
+              <div class="tl-title">Dengue fever (A90) — resolved</div>
+              <div class="tl-detail">Paracetamol 500mg · 7-day course · fully recovered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-prescription">
+        <div style="margin-bottom:16px">
+          <div style="font-size:14px;font-weight:500;color:var(--color-text-primary)">New prescription — Rahul Sharma</div>
+          <div style="font-size:12px;color:var(--color-text-secondary)">ABHA-4829 · Warfarin 5mg active · Allergies: Penicillin, Sulfa</div>
+        </div>
+
+        <div class="rx-form">
+          <div class="rx-row">
+            <div>
+              <div class="rx-label">Medication name</div>
+              <input class="rx-input" id="med-input" type="text" placeholder="e.g. Aspirin 75mg" oninput="checkDDI(this.value)"/>
+            </div>
+            <div>
+              <div class="rx-label">Dosage</div>
+              <input class="rx-input" type="text" placeholder="e.g. 75mg once daily"/>
+            </div>
+          </div>
+          <div class="rx-row">
+            <div>
+              <div class="rx-label">Duration</div>
+              <input class="rx-input" type="text" placeholder="e.g. 30 days"/>
+            </div>
+            <div>
+              <div class="rx-label">Purpose</div>
+              <input class="rx-input" type="text" placeholder="e.g. cardiac prophylaxis"/>
+            </div>
+          </div>
+
+          <div class="ddi-alert" id="ddi-banner">
+            <div class="ddi-title">Drug interaction warning — moderate / critical</div>
+            <div class="ddi-body" id="ddi-msg"></div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn-sm btn-primary" onclick="sendPrompt('Generate the FHIR MedicationRequest JSON for Aspirin 75mg prescribed to patient ABHA-4829 for 30 days')">Submit prescription ↗</button>
+            <button class="btn-sm">Save draft</button>
+            <button class="btn-sm btn-danger">Clear</button>
+          </div>
+        </div>
+
+        <div class="section-label">Active medications on file</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="background:var(--color-background-primary);border:0.5px solid #F09595;border-radius:var(--border-radius-md);padding:10px 14px;display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;color:var(--color-text-primary);flex:1;font-weight:500">Warfarin 5mg</span>
+            <span style="font-size:12px;color:var(--color-text-secondary)">Apollo Delhi · Oct 2024</span>
+            <span class="p-badge badge-red">High risk</span>
+          </div>
+          <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;color:var(--color-text-primary);flex:1">Metformin 500mg</span>
+            <span style="font-size:12px;color:var(--color-text-secondary)">Fortis Mumbai · Jan 2024</span>
+            <span class="p-badge badge-green">Low risk</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen" id="screen-consent">
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-num" style="color:#27500A">3</div><div class="stat-lbl">Active consents</div></div>
+          <div class="stat"><div class="stat-num" style="color:#633806">2</div><div class="stat-lbl">Pending requests</div></div>
+          <div class="stat"><div class="stat-num" style="color:#444441">1</div><div class="stat-lbl">Expired today</div></div>
+        </div>
+
+        <div class="section-label">Pending consent requests</div>
+
+        <div class="consent-card" style="border-color:#EF9F27">
+          <div class="consent-header">
+            <div class="avatar">AK</div>
+            <div class="consent-title">Amit Kumar — ABHA-3310</div>
+            <span class="p-badge badge-amber">Awaiting patient</span>
+          </div>
+          <div class="consent-meta">Requested: Condition, MedicationRequest · Purpose: Care Management · Expires in: 24h · Sent OTP to +91 99XXX XXX12</div>
+          <div class="consent-actions">
+            <button class="btn-sm" onclick="sendPrompt('How does the ABDM consent OTP flow work for a doctor requesting a patient record?')">How consent works ↗</button>
+            <button class="btn-sm">Resend OTP</button>
+          </div>
+        </div>
+
+        <div class="section-label">Active consents</div>
+
+        <div class="consent-card">
+          <div class="consent-header">
+            <div class="avatar">RS</div>
+            <div class="consent-title">Rahul Sharma — ABHA-4829</div>
+            <span class="p-badge badge-green">Active</span>
+          </div>
+          <div class="consent-meta">Access: Condition, MedicationRequest, Observation · Purpose: Care Management · Expires: 6h remaining · Token: CONSENT-F4A2B19C</div>
+          <div class="consent-actions">
+            <button class="btn-sm btn-danger">Revoke</button>
+            <button class="btn-sm">Extend</button>
+            <button class="btn-sm" onclick="showScreen('timeline')">View records</button>
+          </div>
+        </div>
+
+        <div class="consent-card">
+          <div class="consent-header">
+            <div class="avatar">PP</div>
+            <div class="consent-title">Priya Patel — ABHA-7721</div>
+            <span class="p-badge badge-green">Active</span>
+          </div>
+          <div class="consent-meta">Access: Condition only · Purpose: Emergency · Expires: 23h remaining · Break-glass used at 14:32</div>
+          <div class="consent-actions">
+            <button class="btn-sm btn-danger">Revoke</button>
+            <button class="btn-sm" onclick="showScreen('timeline')">View records</button>
+          </div>
+        </div>
+
+        <div class="section-label">Request new consent</div>
+        <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:14px">
+          <div class="rx-row">
+            <div>
+              <div class="rx-label">Patient ABHA ID or phone</div>
+              <input class="rx-input" type="text" placeholder="ABHA-XXXX or +91..."/>
+            </div>
+            <div>
+              <div class="rx-label">Purpose</div>
+              <select class="rx-input"><option>Care Management</option><option>Emergency</option><option>Second Opinion</option></select>
+            </div>
+          </div>
+          <div class="rx-row">
+            <div>
+              <div class="rx-label">Data types needed</div>
+              <select class="rx-input"><option>Condition + Medication</option><option>All records</option><option>Labs only</option></select>
+            </div>
+            <div>
+              <div class="rx-label">Duration</div>
+              <select class="rx-input"><option>24 hours</option><option>7 days</option><option>30 days</option></select>
+            </div>
+          </div>
+          <button class="btn-sm btn-primary" onclick="sendPrompt('Write the FastAPI endpoint POST /consent/grant that sends an OTP to the patient and creates a pending consent record in Postgres')">Send consent request ↗</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const titles = {search:'Patient search',timeline:'Health timeline — Rahul Sharma',prescription:'New prescription',consent:'Consent hub'};
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  const navMap = {search:0,timeline:1,prescription:2,consent:3};
+  document.querySelectorAll('.nav-item')[navMap[id]].classList.add('active');
+  document.getElementById('topbar-title').textContent = titles[id];
+}
+function doSearch(){
+  const q = document.getElementById('search-input').value.toLowerCase();
+  if(q) showScreen('timeline');
+}
+const interactions = {
+  'aspirin':['Warfarin + Aspirin','Critical bleeding risk. These two together significantly increase haemorrhagic stroke risk. Do not prescribe without haematology consult.'],
+  'ibuprofen':['Warfarin + Ibuprofen','Moderate risk. NSAIDs can potentiate Warfarin and increase GI bleeding. Consider paracetamol instead.'],
+  'naproxen':['Warfarin + Naproxen','Moderate risk. Same NSAID concern as Ibuprofen — increased anticoagulant effect.'],
+};
+function checkDDI(val){
+  const v = val.toLowerCase().trim();
+  const banner = document.getElementById('ddi-banner');
+  const msg = document.getElementById('ddi-msg');
+  let found = null;
+  for(const k in interactions){ if(v.includes(k)){ found=interactions[k]; break; } }
+  if(found){
+    msg.textContent = found[0]+': '+found[1];
+    banner.style.display='block';
+  } else {
+    banner.style.display='none';
+  }
+}
+</script>
