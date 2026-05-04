@@ -36,7 +36,7 @@ services:
         condition: service_healthy
 
   python-backend:
-    build: .
+    build: ./backend
     container_name: python-backend
     ports:
       - "8000:8000"
