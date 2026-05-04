@@ -14,7 +14,8 @@ from parser_sdk import HospitalDataParser
 from terminology_engine import TerminologyEngine, FhirTransformer
 from mpi_engine import MasterPatientIndex
 from consent_engine import ConsentEngine
-from clinical_rules import DrugInteractionEngine
+from drug_interaction_engine import DrugInteractionEngine
+from pydantic import BaseModel
 from database import SessionLocal, engine, init_db, get_db, PatientMapping, ConsentArtefact, User
 from auth import create_access_token, get_password_hash, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES, verify_password
 from api_gateway import SecureApiGateway
@@ -266,6 +267,32 @@ async def prescribe_medication(
             "prescribed_by": current_user.full_name
         }
         
+@app.get("/patients")
+async def search_patients(q: str = "", db: Session = Depends(get_db)):
+    mappings = db.query(PatientMapping).all()
+    results = []
+    for m in mappings:
+        pd = m.patient_data
+        if q.lower() in pd.get("name", "").lower() or q.lower() in m.global_id.lower() or not q:
+            results.append({
+                "id": m.global_id,
+                "name": pd.get("name", "Unknown"),
+                "initials": "".join([n[0] for n in pd.get("name", "Unknown").split() if n]),
+                "dob": pd.get("dob", "Unknown"),
+                "hospitals": m.hospital_name,
+                "status": "Consent pending"
+            })
+    return results
+
+class InteractionRequest(BaseModel):
+    active_medications: list[str]
+    new_drug: str
+
+@app.post("/check-interaction")
+async def check_interaction(req: InteractionRequest):
+    alerts = ddi_engine.check(req.active_medications, req.new_drug)
+    return {"alerts": alerts}
+    
     return {
         "status": "SAFE",
         "message": "No clinical interactions detected.",

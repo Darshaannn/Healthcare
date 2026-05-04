@@ -7,7 +7,7 @@ services:
     environment:
       - POSTGRES_DB=hapi_fhir
       - POSTGRES_USER=hapi_user
-      - POSTGRES_PASSWORD=hapi_password
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hapi_password}
     ports:
       - "5432:5432"
     volumes:
@@ -26,7 +26,7 @@ services:
     environment:
       - spring.datasource.url=jdbc:postgresql://hapi-fhir-postgres:5432/hapi_fhir
       - spring.datasource.username=hapi_user
-      - spring.datasource.password=hapi_password
+      - spring.datasource.password=${POSTGRES_PASSWORD:-hapi_password}
       - spring.datasource.driverClassName=org.postgresql.Driver
       - spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
       - hapi.fhir.tester.home.server_address=http://localhost:8080/fhir
@@ -41,8 +41,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - HAPI_FHIR_URL=http://hapi-fhir-server:8080/fhir
-      - DATABASE_URL=postgresql://hapi_user:hapi_password@hapi-fhir-postgres:5432/hapi_fhir
+      - HAPI_FHIR_URL=${HAPI_FHIR_URL:-http://hapi-fhir-server:8080/fhir}
+      - DATABASE_URL=postgresql://hapi_user:${POSTGRES_PASSWORD:-hapi_password}@hapi-fhir-postgres:5432/hapi_fhir
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       hapi-fhir-postgres:
         condition: service_healthy

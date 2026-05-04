@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: API_BASE,
 });
+
+export const checkInteraction = (payload) => api.post('/check-interaction', payload);
 
 // Mocked doctor for frontend testing
 const doctor_id = 'DOC-SHARMA-001';

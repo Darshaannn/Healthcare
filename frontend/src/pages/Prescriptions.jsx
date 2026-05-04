@@ -1,11 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DDIAlert from '../components/DDIAlert';
 import { Pill, Search, Plus } from 'lucide-react';
+import { checkInteraction } from '../api/client';
 
 const Prescriptions = () => {
   const [medication, setMedication] = useState('');
+  const [alerts, setAlerts] = useState([]);
+  const [isChecking, setIsChecking] = useState(false);
   
-  const isAspirinOrIbuprofen = medication.toLowerCase().includes('aspirin') || medication.toLowerCase().includes('ibuprofen');
+  // Hardcoded patient meds for now as requested
+  const activeMeds = ["Warfarin 5mg", "Metformin 500mg"];
+
+  useEffect(() => {
+    const checkDDI = async () => {
+      if (!medication) {
+        setAlerts([]);
+        return;
+      }
+      setIsChecking(true);
+      try {
+        const res = await checkInteraction({
+          active_medications: activeMeds,
+          new_drug: medication
+        });
+        setAlerts(res.data.alerts || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      checkDDI();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [medication]);
+
+  const hasCritical = alerts.some(a => a.severity === 'CRITICAL');
 
   return (
     <div style={{ maxWidth: '840px', margin: '0 auto' }}>
@@ -31,15 +64,16 @@ const Prescriptions = () => {
           />
         </div>
         
-        {isAspirinOrIbuprofen && (
+        {alerts.map((alert, idx) => (
           <DDIAlert 
-            message={`${medication} interacts with patient's existing Warfarin. High risk of major bleeding complications.`} 
+            key={idx}
+            message={`Interaction with ${alert.pair.join(' and ')}: ${alert.message}`} 
           />
-        )}
+        ))}
         
         <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-          <button className={`btn ${isAspirinOrIbuprofen ? 'btn' : 'btn-primary'}`} style={isAspirinOrIbuprofen ? {backgroundColor: 'var(--bg-red-light)', color: 'var(--text-red)', borderColor: 'rgba(239, 68, 68, 0.2)'} : {}}>
-            Prescribe Medication
+          <button className={`btn ${hasCritical ? 'btn' : 'btn-primary'}`} style={hasCritical ? {backgroundColor: 'var(--bg-red-light)', color: 'var(--text-red)', borderColor: 'rgba(239, 68, 68, 0.2)'} : {}}>
+            {isChecking ? 'Checking...' : 'Prescribe Medication'}
           </button>
         </div>
       </div>

@@ -20,14 +20,27 @@ const getStatusBadge = (status) => {
 
 const PatientSearch = () => {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState(mockPatients);
+  const [results, setResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if(query) {
-      setResults(mockPatients.filter(p => p.name.toLowerCase().includes(query.toLowerCase())));
-    } else {
-      setResults(mockPatients);
-    }
+    const fetchPatients = async () => {
+      setIsLoading(true);
+      try {
+        const res = await searchPatients(query);
+        setResults(res.data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    const timer = setTimeout(() => {
+      fetchPatients();
+    }, 300);
+    
+    return () => clearTimeout(timer);
   }, [query]);
 
   return (
